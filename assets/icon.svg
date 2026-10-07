@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="FormDueBoard">
+  <rect x="48" y="48" width="928" height="928" rx="188" fill="#FFF6E8" stroke="#1B3A8C" stroke-width="56"/>
+  <rect x="292" y="250" width="440" height="560" rx="36" fill="#FFFFFF" stroke="#1B3A8C" stroke-width="22"/>
+  <rect x="412" y="188" width="200" height="96" rx="28" fill="#E23B32" stroke="#1B3A8C" stroke-width="16"/>
+  <circle cx="512" cy="236" r="18" fill="#FFF6E8" stroke="#1B3A8C" stroke-width="8"/>
+  <g fill="none" stroke="#E23B32" stroke-width="18" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M360 420 l36 36 64-72"/>
+    <path d="M360 540 l36 36 64-72"/>
+    <path d="M360 660 l36 36 64-72"/>
+  </g>
+  <g fill="none" stroke="#1B3A8C" stroke-width="14" stroke-linecap="round">
+    <path d="M520 430 h150"/>
+    <path d="M520 470 h110"/>
+    <path d="M520 550 h150"/>
+    <path d="M520 590 h90"/>
+    <path d="M520 670 h150"/>
+    <path d="M520 710 h120"/>
+  </g>
+  <path d="M690 250c40-70 130-70 150 10 18 70-40 120-75 150-35-30-93-80-75-160z" fill="#E23B32" stroke="#1B3A8C" stroke-width="16"/>
+  <path d="M760 250c10-50 50-70 70-60" fill="none" stroke="#2F7D32" stroke-width="16" stroke-linecap="round"/>
+  <ellipse cx="790" cy="214" rx="22" ry="12" fill="#3C9A40" transform="rotate(-30 790 214)"/>
+  <circle cx="760" cy="210" r="28" fill="#3C7ADF" stroke="#FFFFFF" stroke-width="8"/>
+  <circle cx="760" cy="210" r="10" fill="#FFFFFF"/>
+</svg>

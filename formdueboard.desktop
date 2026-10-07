@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=FormDueBoard
+Comment=School form due dates, one checklist per kid
+Exec=bash -c 'cd "$(dirname "$1")" && ./launch.sh' dummy %k
+Icon=assets/icon.png
+Terminal=true
+Categories=Utility;Education;
+StartupNotify=true
