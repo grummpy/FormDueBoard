@@ -1,0 +1,36 @@
+[project]
+name = "formdueboard"
+version = "1.0.0"
+description = "Local checklist of school form due dates, one column per kid."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pypdf==6.19.0",
+  "python-docx==1.2.0",
+  "PyYAML==6.0.3",
+]
+
+[project.scripts]
+formdueboard = "formdueboard.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["formdueboard*"]
+
+[tool.setuptools.package-data]
+formdueboard = ["web/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]

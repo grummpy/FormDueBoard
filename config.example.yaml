@@ -1,0 +1,26 @@
+# Copy of this file is written to data/config.yaml on first launch.
+# data/ is gitignored. Put real nicknames and teacher names only in that copy.
+
+timezone: America/New_York
+due_soon_days: 7
+confidence_threshold: 0.55
+port: 8765
+inbox_dir: data/inbox
+db_path: data/formdueboard.sqlite
+
+gmail:
+  enabled: false
+  credentials_file: data/gmail_client_secret.json
+  token_file: data/gmail_token.json
+  max_messages: 200
+  query: 'newer_than:120d (permission OR "permission slip" OR "field trip" OR "picture day" OR "sign and return" OR fee OR form)'
+
+kids:
+  - name: Student A
+    nicknames: [Student A, Kid A]
+    grade: "4"
+    teachers: [Ms. Calder, mscalder@example.com]
+  - name: Student B
+    nicknames: [Student B, Kid B]
+    grade: "2"
+    teachers: [Mr. Okonkwo, mokonkwo@example.com]

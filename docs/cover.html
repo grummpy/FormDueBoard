@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>FormDueBoard cover</title>
+<style>
+  html, body { margin: 0; background: #fff6e8; }
+  body {
+    width: 1600px;
+    height: 900px;
+    overflow: hidden;
+    font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+    color: #1b2a4a;
+    position: relative;
+    background:
+      radial-gradient(circle at 8% 18%, #16357a 0 92px, transparent 94px),
+      radial-gradient(circle at 18% 8%, #e23b32 0 18px, transparent 20px),
+      radial-gradient(circle at 0 100%, #1b3a8c 0 280px, transparent 282px),
+      radial-gradient(circle at 100% 100%, #f6d56a 0 220px, transparent 222px),
+      radial-gradient(circle at 78% 92%, #ffe08a 0 160px, transparent 162px),
+      #fff6e8;
+  }
+  .dash {
+    position: absolute; border: 3px dashed rgba(255,255,255,.8); border-radius: 40px;
+  }
+  h1 {
+    margin: 28px 0 0;
+    text-align: center;
+    font-size: 92px;
+    letter-spacing: -3px;
+    color: #1b3a8c;
+    line-height: 1;
+  }
+  h1 span { color: #e23b32; }
+  .swoosh {
+    width: 520px; height: 14px; margin: 8px auto 0; border-radius: 20px;
+    background: linear-gradient(90deg, transparent, #f5c518 20%, #f5c518 80%, transparent);
+  }
+  .board {
+    width: 860px; margin: 18px auto 0; background:
+      repeating-linear-gradient(35deg, #e0ad66 0 3px, #d1974c 3px 8px);
+    border: 14px solid #1b3a8c; border-radius: 26px; padding: 18px 18px 22px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 14px; position: relative;
+  }
+  .board:before {
+    content: ""; position: absolute; left: 50%; top: 70px; bottom: 24px; border-left: 3px dashed rgba(255,255,255,.75);
+  }
+  .ribbon {
+    justify-self: center; color: white; font-weight: 800; font-size: 28px;
+    padding: 8px 28px 12px; min-width: 220px; text-align: center;
+    clip-path: polygon(0 0, 100% 0, 94% 100%, 6% 100%);
+  }
+  .blue { background: #244e9a; }
+  .red { background: #d23b3b; }
+  .card {
+    background: #fffdf8; border-radius: 16px; margin: 10px 18px 8px; padding: 14px 16px 12px;
+    box-shadow: 0 8px 0 rgba(90,52,18,.12); position: relative;
+  }
+  .pin { width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; position: absolute; left: 50%; top: -10px; }
+  .kicker { font-size: 13px; font-weight: 800; letter-spacing: .08em; color: #1b3a8c; }
+  .card h2 { margin: 6px 0 8px; font-size: 22px; }
+  .check { color: #e23b32; font-weight: 800; margin-right: 6px; }
+  .due { display: inline-block; background: #f5c518; border-radius: 10px; font-weight: 800; padding: 4px 8px; color: #1b2a4a; }
+  .bus {
+    position: absolute; left: 36px; bottom: 48px; width: 250px; height: 120px; background: #f5c518;
+    border: 6px solid #1b2a4a; border-radius: 18px 28px 12px 12px;
+  }
+  .bus:before { content: ""; position: absolute; left: 18px; top: 16px; width: 70px; height: 36px; background: #d7eef8; border: 4px solid #1b2a4a; border-radius: 8px; box-shadow: 88px 0 0 #d7eef8, 88px 0 0 4px #1b2a4a; }
+  .wheel { position: absolute; bottom: -22px; width: 36px; height: 36px; background: #222; border-radius: 50%; border: 6px solid #888; }
+  .env { position: absolute; width: 78px; height: 52px; background: white; border: 3px solid #1b3a8c; border-radius: 6px; }
+  .env:after { content: ""; position: absolute; left: 28px; top: 16px; width: 16px; height: 16px; background: #e23b32; border-radius: 50%; }
+  .pencil { position: absolute; right: 70px; top: 210px; width: 36px; height: 210px; background: linear-gradient(#f6d15a, #f0b429); border: 4px solid #1b2a4a; border-radius: 8px; transform: rotate(28deg); }
+  .pencil:before { content: ""; position: absolute; left: -4px; bottom: -36px; border-left: 18px solid transparent; border-right: 18px solid transparent; border-top: 36px solid #f2d2b0; }
+  .icon {
+    position: absolute; right: 48px; bottom: 36px; width: 150px; height: 150px; background: #fffdf8;
+    border: 8px solid #1b3a8c; border-radius: 28px;
+  }
+</style>
+</head>
+<body>
+  <div class="dash" style="left:40px;top:40px;width:180px;height:80px"></div>
+  <h1>Form<span>Due</span>Board</h1>
+  <div class="swoosh"></div>
+  <div class="board">
+    <div class="ribbon blue">★ Student A</div>
+    <div class="ribbon red">★ Student B</div>
+    <div class="card"><div class="pin" style="background:#e23b32"></div><div class="kicker">PERMISSION SLIP</div><h2><span class="check">☑</span>Field Trip to Science Center</h2><div class="due">Due: May 16</div></div>
+    <div class="card"><div class="pin" style="background:#3c7adf"></div><div class="kicker">PERMISSION SLIP</div><h2><span class="check">☑</span>Museum Visit</h2><div class="due">Due: May 18</div></div>
+    <div class="card"><div class="pin" style="background:#f0c43a"></div><div class="kicker">PERMISSION SLIP</div><h2><span class="check">☑</span>Sports Day Participation</h2><div class="due">Due: May 20</div></div>
+    <div class="card"><div class="pin" style="background:#e23b32"></div><div class="kicker">PERMISSION SLIP</div><h2><span class="check">☑</span>After-School Club</h2><div class="due">Due: May 22</div></div>
+  </div>
+  <div class="env" style="left:70px;top:250px;transform:rotate(-18deg)"></div>
+  <div class="env" style="left:40px;top:330px;transform:rotate(12deg)"></div>
+  <div class="env" style="left:120px;top:360px;transform:rotate(-8deg)"></div>
+  <div class="bus"><div class="wheel" style="left:30px"></div><div class="wheel" style="left:160px"></div></div>
+  <div class="pencil"></div>
+  <div class="icon"></div>
+</body>
+</html>

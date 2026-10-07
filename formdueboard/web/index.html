@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>FormDueBoard</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <img src="/icon.png" alt="" width="72" height="72" class="logo">
+    <div>
+      <h1>Form<span class="due">Due</span>Board</h1>
+      <p class="tagline">Permission slips, fees, and picture day. One checklist per kid.</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button type="button" id="scan" class="btn primary">Scan inbox</button>
+    <label class="btn file">
+      Add email files
+      <input id="files" type="file" accept=".eml,.mbox,.mbx,message/rfc822" multiple hidden>
+    </label>
+    <button type="button" id="samples" class="btn">Load sample mail</button>
+    <a class="btn" href="/api/ics">Export .ics</a>
+    <a class="btn" href="/print" target="_blank" rel="noopener">Print checklist</a>
+    <button type="button" id="gmail" class="btn" hidden>Fetch Gmail</button>
+  </div>
+</header>
+<p id="status" class="status" role="status"></p>
+<main>
+  <section id="board" class="board" aria-live="polite"></section>
+  <section id="review" class="review" hidden>
+    <h2>Needs a look</h2>
+    <p class="review-note">These were not filed under a kid. Nothing here is assigned until you say so.</p>
+    <div id="review-cards" class="review-cards"></div>
+  </section>
+</main>
+<footer>
+  <p id="foot"></p>
+</footer>
+<script src="/app.js"></script>
+</body>
+</html>
