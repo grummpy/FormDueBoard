@@ -72,9 +72,9 @@ def default_config_path() -> Path:
     return app_root() / "data" / "config.yaml"
 
 
-def ensure_config_file(path: Path | None = None) -> Path:
+def ensure_config_file(path: str | Path | None = None) -> Path:
     """Copy the example config into the gitignored data folder on first launch."""
-    target = path or default_config_path()
+    target = Path(path) if path is not None else default_config_path()
     if target.exists():
         return target
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -86,7 +86,7 @@ def ensure_config_file(path: Path | None = None) -> Path:
     return target
 
 
-def load_config(path: Path | None = None) -> AppConfig:
+def load_config(path: str | Path | None = None) -> AppConfig:
     config_path = ensure_config_file(path)
     raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
     if not isinstance(raw, dict):

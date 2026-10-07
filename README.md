@@ -85,6 +85,7 @@ Build the Mac app on a Mac and the Windows exe on Windows so the bundle matches 
 
 - English school-mail phrasing only. Unusual wording can miss a form or land in Needs a look.
 - Numeric dates are read as month/day/year.
+- Email dates without a timezone are treated as UTC. This keeps mixed `.eml` and mbox exports sortable; add a timezone to exported mail when its local calendar day matters.
 - "by Friday" means the next time that weekday occurs, including today. "next Friday" means the same thing unless the email was sent on Friday, in which case it means a week later.
 - PDF text is extracted with pypdf. Scanned pages without a text layer are not read (no OCR). DOCX text is extracted; pictures inside a DOCX are not.
 - One clear form per message is filed. A single email that requests two unrelated forms for the same kid may keep only the stronger one.

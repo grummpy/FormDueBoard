@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import mailbox
 import re
+from datetime import UTC, datetime
 from email import policy
 from email.parser import BytesParser
 from email.utils import parsedate_to_datetime
@@ -14,6 +15,20 @@ from formdueboard.attachments import extract_attachment_text
 from formdueboard.model import ParsedAttachment, ParsedMessage
 
 MAIL_SUFFIXES = {".eml", ".mbox", ".mbx"}
+
+
+def normalized_sent_at(value: datetime | None) -> datetime | None:
+    """Return a UTC-aware timestamp; malformed or missing dates stay ``None``.
+
+    RFC 5322 dates without an offset are ambiguous. We intentionally interpret
+    them as UTC so mixed exports have a deterministic ordering; the README
+    documents this conservative fallback.
+    """
+    if value is None:
+        return None
+    if value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value.astimezone(UTC)
 
 
 def load_messages_from_path(path: Path) -> list[ParsedMessage]:
@@ -38,7 +53,7 @@ def parse_eml_bytes(data: bytes, source_path: str | None = None) -> ParsedMessag
     sent_at = None
     if parsed.get("date"):
         try:
-            sent_at = parsedate_to_datetime(str(parsed.get("date")))
+            sent_at = normalized_sent_at(parsedate_to_datetime(str(parsed.get("date"))))
         except (TypeError, ValueError, IndexError, OverflowError):
             sent_at = None
     message_id = parsed.get("message-id")
