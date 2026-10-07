@@ -2,6 +2,7 @@ import http.client
 import json
 import urllib.request
 
+from formdueboard.cli import main
 from formdueboard.config import AppConfig, default_kids, load_config
 from formdueboard.server import BIND_HOST, App, start_background
 from tests.mailutil import make_eml
@@ -39,6 +40,12 @@ def _config(tmp_path, gmail_enabled=False) -> AppConfig:
     assert config.host == "127.0.0.1"
     assert config.gmail.enabled is gmail_enabled
     return config
+
+
+def test_custom_config_accepts_a_cli_string_path(tmp_path):
+    config = _config(tmp_path)
+    assert load_config(str(config.config_path)).config_path == config.config_path
+    assert main(["--config", str(config.config_path), "export-ics"]) == 0
 
 
 def test_server_on_loopback_returns_200(tmp_path):

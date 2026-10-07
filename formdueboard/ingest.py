@@ -10,6 +10,7 @@ from formdueboard.config import KidConfig
 from formdueboard.dates import decide_dates, is_due_change
 from formdueboard.db import Database
 from formdueboard.extract import _cancelled, extract_from_message, normalize_title
+from formdueboard.mail import normalized_sent_at
 from formdueboard.model import ParsedMessage
 
 
@@ -30,7 +31,10 @@ def ingest_messages(
     tz_name: str = "America/New_York",
 ) -> IngestResult:
     result = IngestResult()
-    ordered = sorted(messages, key=lambda message: (message.sent_at is None, message.sent_at or ""))
+    ordered = sorted(
+        messages,
+        key=lambda message: (message.sent_at is None, normalized_sent_at(message.sent_at) or ""),
+    )
     for message in ordered:
         result.messages += 1
         if db.has_raw_hash(message.raw_hash) or db.has_message_id(message.message_id):

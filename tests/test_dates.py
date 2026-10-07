@@ -1,6 +1,8 @@
-from datetime import date
+from datetime import UTC, date, datetime
 
 from formdueboard.dates import decide_dates, weekday_to_date
+from formdueboard.ingest import ingest_messages
+from formdueboard.mail import load_messages_from_path, normalized_sent_at
 
 ANCHOR = date(2026, 5, 13)  # Wednesday
 
@@ -68,3 +70,33 @@ def test_extended_due_date_uses_the_new_day():
     assert decision.due_changed is True
     assert decision.due_date == date(2026, 5, 22)
     assert decision.conflict is False
+
+
+def test_mixed_email_date_timezones_sort_and_ingest(tmp_path, kids):
+    inbox = tmp_path / "inbox"
+    inbox.mkdir()
+    (inbox / "aware.eml").write_text(
+        "From: sender@example.com\nTo: parent@example.com\nDate: Wed, 13 May 2026 12:00:00 -0400\n"
+        "Subject: Permission slip\nMessage-ID: <aware@example.com>\n\nPermission slip due May 16.\n",
+        encoding="utf-8",
+    )
+    (inbox / "naive.eml").write_text(
+        "From: sender@example.com\nTo: parent@example.com\nDate: Wed, 13 May 2026 11:00:00\n"
+        "Subject: Permission slip\nMessage-ID: <naive@example.com>\n\nPermission slip due May 17.\n",
+        encoding="utf-8",
+    )
+    messages = load_messages_from_path(inbox)
+    assert all(message.sent_at is None or message.sent_at.tzinfo is not None for message in messages)
+    from formdueboard.db import Database
+
+    db = Database(tmp_path / "board.sqlite")
+    try:
+        result = ingest_messages(db, messages, kids)
+    finally:
+        db.close()
+    assert result.messages == 2
+
+
+def test_naive_email_timestamp_is_documented_as_utc():
+    value = normalized_sent_at(datetime(2026, 5, 13, 11, 0))
+    assert value == datetime(2026, 5, 13, 11, 0, tzinfo=UTC)
