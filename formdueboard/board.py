@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -99,8 +100,11 @@ def _present(db: Database, row: dict, today: date, soon_days: int) -> dict:
         "form_label": row["form_label"],
         "due_date": row.get("due_date"),
         "due_display": format_day(due, today) if due else None,
+        "due_date_phrase": row.get("due_date_phrase"),
         "event_date": row.get("event_date"),
         "event_display": format_day(event, today) if event else None,
+        "event_date_phrase": row.get("event_date_phrase"),
+        "date_assumptions": _date_assumptions(row.get("date_assumptions")),
         "fee_amount": row.get("fee_amount"),
         "status": status,
         "cancelled": cancelled,
@@ -122,3 +126,15 @@ def file_name(path: str | None) -> str | None:
     if not path:
         return None
     return path.rsplit("/", 1)[-1].rsplit("\\", 1)[-1]
+
+
+def _date_assumptions(value: object) -> list[str]:
+    if not value:
+        return []
+    if isinstance(value, list):
+        return [str(item) for item in value]
+    try:
+        parsed = json.loads(str(value))
+    except (TypeError, json.JSONDecodeError):
+        return []
+    return [str(item) for item in parsed] if isinstance(parsed, list) else []

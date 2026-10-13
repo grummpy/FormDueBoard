@@ -11,6 +11,8 @@ def test_by_friday_is_the_friday_of_that_week():
     decision = decide_dates("Please sign and return the permission slip by Friday.", ANCHOR)
     assert decision.due_date == date(2026, 5, 15)
     assert decision.conflict is False
+    assert decision.due_date_phrase == "by Friday"
+    assert "email date 2026-05-13" in decision.assumptions[0]
 
 
 def test_tomorrow_and_today():
@@ -62,6 +64,9 @@ def test_conflicting_due_dates():
     decision = decide_dates("The permission slip is due May 16 or due May 18.", ANCHOR)
     assert decision.conflict is True
     assert decision.due_date is None
+    assert decision.due_date_phrase is None
+    assert "'May 16'" in " ".join(decision.assumptions)
+    assert "'May 18'" in " ".join(decision.assumptions)
 
 
 def test_extended_due_date_uses_the_new_day():

@@ -53,6 +53,11 @@ SUBJECT_PREFIX_RE = re.compile(
     r"^\s*(?:(?:re|fw|fwd)\s*:\s*|\[[^\]]+\]\s*|smartsend\s*:\s*|gradelink\s*:\s*)",
     re.IGNORECASE,
 )
+MULTI_FORM_SPLIT_RE = re.compile(
+    r"\s+(?:and|also)\s+(?=(?:the )?(?:picture day|sports day|after[- ]school|field trip|"
+    r"permission slip|waiver|yearbook fee))",
+    re.IGNORECASE,
+)
 
 
 def extract_from_message(
@@ -61,7 +66,22 @@ def extract_from_message(
     threshold: float = 0.55,
     tz_name: str = "America/New_York",
 ) -> list[ExtractedItem]:
-    text = message.combined_text()
+    segments = _form_segments(message, tz_name)
+    if not segments:
+        segments = [message.combined_text()]
+    items: list[ExtractedItem] = []
+    for text in segments:
+        items.extend(_extract_segment(message, text, kids, threshold, tz_name))
+    return items
+
+
+def _extract_segment(
+    message: ParsedMessage,
+    text: str,
+    kids: list[KidConfig],
+    threshold: float,
+    tz_name: str,
+) -> list[ExtractedItem]:
     form_type = detect_form_type(text)
     if form_type is None:
         return []
@@ -113,9 +133,42 @@ def extract_from_message(
                 due_changed=decision.due_changed or is_due_change(text),
                 normalized_subject=normalized,
                 attachment_names=attachment_names,
+                due_date_phrase=decision.due_date_phrase,
+                event_date_phrase=decision.event_date_phrase,
+                date_assumptions=decision.assumptions,
             )
         )
     return items
+
+
+def _form_segments(message: ParsedMessage, tz_name: str) -> list[str]:
+    """Split a mail body only when it names multiple concrete form requests.
+
+    This deliberately avoids guessing that a generic follow-up sentence is a
+    new form. A one-form message continues through the established full-text
+    path, including attachment text and the subject line.
+    """
+    body = (message.body_text or "").strip()
+    if not body:
+        return []
+    split_body = MULTI_FORM_SPLIT_RE.sub("\n", body)
+    pieces = [piece.strip() for piece in re.split(r"\n+|(?<=[.!?])\s+", split_body) if piece.strip()]
+    anchor = message.anchor_date(tz_name)
+    starts = [
+        index
+        for index, piece in enumerate(pieces)
+        if _has_specific_form_type(piece) and decide_dates(piece, anchor).due_date is not None
+    ]
+    if len(starts) < 2:
+        return []
+    return [
+        " ".join(pieces[start : starts[position + 1] if position + 1 < len(starts) else len(pieces)])
+        for position, start in enumerate(starts)
+    ]
+
+
+def _has_specific_form_type(text: str) -> bool:
+    return any(name != "form" and re.search(pattern, text, re.IGNORECASE) for name, pattern in FORM_PATTERNS)
 
 
 def detect_form_type(text: str) -> str | None:

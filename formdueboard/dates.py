@@ -94,6 +94,7 @@ class DateHit:
     end: int
     kind: str
     raw: str
+    assumption: str
 
 
 def weekday_to_date(anchor: date, weekday: int, qualifier: str | None) -> date:
@@ -117,6 +118,7 @@ def infer_year(month: int, day: int, anchor: date) -> date | None:
 
 
 def find_dates(text: str, anchor: date | None) -> list[DateHit]:
+    missing_anchor = anchor is None
     if anchor is None:
         anchor = date.today()
     hits: list[DateHit] = []
@@ -143,7 +145,8 @@ def find_dates(text: str, anchor: date | None) -> list[DateHit]:
             if found is None:
                 continue
         if claim(match.start(), match.end()):
-            hits.append(DateHit(found, match.start(), match.end(), "unknown", match.group(0)))
+            raw = match.group(0)
+            hits.append(_hit(found, match.start(), match.end(), raw, anchor, missing_anchor))
 
     for match in NUMERIC_RE.finditer(text):
         month = int(match.group("month"))
@@ -156,7 +159,8 @@ def find_dates(text: str, anchor: date | None) -> list[DateHit]:
         except ValueError:
             continue
         if claim(match.start(), match.end()):
-            hits.append(DateHit(found, match.start(), match.end(), "unknown", match.group(0)))
+            raw = match.group(0)
+            hits.append(_hit(found, match.start(), match.end(), raw, anchor, missing_anchor))
 
     for match in ISO_RE.finditer(text):
         try:
@@ -164,14 +168,16 @@ def find_dates(text: str, anchor: date | None) -> list[DateHit]:
         except ValueError:
             continue
         if claim(match.start(), match.end()):
-            hits.append(DateHit(found, match.start(), match.end(), "unknown", match.group(0)))
+            raw = match.group(0)
+            hits.append(_hit(found, match.start(), match.end(), raw, anchor, missing_anchor))
 
     for match in RELATIVE_RE.finditer(text):
         if not claim(match.start(), match.end()):
             continue
         word = match.group("word").lower()
         found = anchor if word == "today" else anchor + timedelta(days=1)
-        hits.append(DateHit(found, match.start(), match.end(), "unknown", match.group(0)))
+        raw = match.group(0)
+        hits.append(_hit(found, match.start(), match.end(), raw, anchor, missing_anchor))
 
     for match in WEEKDAY_RE.finditer(text):
         if not claim(match.start(), match.end()):
@@ -183,7 +189,8 @@ def find_dates(text: str, anchor: date | None) -> list[DateHit]:
             continue
         weekday = WEEKDAYS[match.group("day").lower()]
         found = weekday_to_date(anchor, weekday, match.group("qual"))
-        hits.append(DateHit(found, match.start(), match.end(), "unknown", match.group(0)))
+        raw = match.group(0)
+        hits.append(_hit(found, match.start(), match.end(), raw, anchor, missing_anchor))
 
     hits.sort(key=lambda hit: hit.start)
     for hit in hits:
@@ -212,6 +219,9 @@ class DateDecision:
     event_date: date | None
     conflict: bool
     due_changed: bool
+    due_date_phrase: str | None = None
+    event_date_phrase: str | None = None
+    assumptions: tuple[str, ...] = ()
 
 
 def decide_dates(text: str, anchor: date | None) -> DateDecision:
@@ -226,14 +236,50 @@ def decide_dates(text: str, anchor: date | None) -> DateDecision:
         change_at = DUE_CHANGE.search(text).start()  # type: ignore[union-attr]
         after = [hit for hit in pool if hit.start >= change_at]
         chosen = (after or pool)[-1]
-        event_date = next((hit.found for hit in events if hit.found != chosen.found), None)
-        return DateDecision(chosen.found, event_date, False, True)
+        event_hit = next((hit for hit in events if hit.found != chosen.found), None)
+        return DateDecision(
+            chosen.found,
+            event_hit.found if event_hit else None,
+            False,
+            True,
+            chosen.raw,
+            event_hit.raw if event_hit else None,
+            _assumptions((*pool, *events)),
+        )
 
     if not dues and len(unknowns) == 1 and not events:
         dues = unknowns
 
     unique_dues = list(dict.fromkeys(hit.found for hit in dues))
     conflict = len(unique_dues) > 1
-    due_date = unique_dues[0] if len(unique_dues) == 1 else None
-    event_date = next((hit.found for hit in events if hit.found != due_date), None)
-    return DateDecision(due_date, event_date, conflict, False)
+    due_hit = dues[0] if len(unique_dues) == 1 else None
+    due_date = due_hit.found if due_hit else None
+    event_hit = next((hit for hit in events if hit.found != due_date), None)
+    return DateDecision(
+        due_date,
+        event_hit.found if event_hit else None,
+        conflict,
+        False,
+        due_hit.raw if due_hit else None,
+        event_hit.raw if event_hit else None,
+        _assumptions((*dues, *events)),
+    )
+
+
+def _assumption(raw: str, anchor: date, missing_anchor: bool) -> str:
+    """Explain only the deterministic context used to turn a phrase into a date."""
+    prefix = "email date unavailable; local processing date" if missing_anchor else "email date"
+    lowered = raw.casefold()
+    if lowered in {"today", "tomorrow"} or WEEKDAY_RE.fullmatch(raw):
+        return f"{raw!r} resolved from {prefix} {anchor.isoformat()}."
+    if not re.search(r"\b\d{4}\b", raw):
+        return f"{raw!r} used the year from {prefix} {anchor.isoformat()}."
+    return f"{raw!r} contains an explicit calendar date."
+
+
+def _hit(found: date, start: int, end: int, raw: str, anchor: date, missing_anchor: bool) -> DateHit:
+    return DateHit(found, start, end, "unknown", raw, _assumption(raw, anchor, missing_anchor))
+
+
+def _assumptions(hits: tuple[DateHit, ...]) -> tuple[str, ...]:
+    return tuple(dict.fromkeys(hit.assumption for hit in hits))
