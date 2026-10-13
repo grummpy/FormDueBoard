@@ -347,6 +347,39 @@ def test_known_kid_without_a_due_date_is_still_not_filed(tmp_path):
     assert "due date" in items[0]["review_reason"].lower()
 
 
+def test_one_email_with_two_concrete_form_requests_creates_two_cards(tmp_path):
+    items = _one(
+        tmp_path,
+        subject="Two forms for Student A",
+        sender=TEACHER_A,
+        message_id="<two-forms@example.com>",
+        date=DATE,
+        body=(
+            "Student A needs the field trip permission slip returned by May 16.\n"
+            "Student A needs the picture day form returned by May 20.\n"
+        ),
+    )
+    assert len(items) == 2
+    assert {(item["form_type"], item["due_date"]) for item in items} == {
+        ("permission_slip", "2026-05-16"),
+        ("picture_day", "2026-05-20"),
+    }
+    assert {item["kid_name"] for item in items} == {"Student A"}
+
+
+def test_due_phrase_and_assumption_are_stored_for_review_context(tmp_path):
+    items = _one(
+        tmp_path,
+        subject="Permission slip",
+        sender=TEACHER_A,
+        message_id="<raw-date@example.com>",
+        date=DATE,
+        body="Student A needs the permission slip returned by Friday.\n",
+    )
+    assert items[0]["due_date_phrase"] == "by Friday"
+    assert "email date 2026-05-13" in items[0]["date_assumptions"]
+
+
 def test_forward_chain_message_extracts_the_original_teacher(tmp_path):
     body = (
         "Please see below.\n\n"

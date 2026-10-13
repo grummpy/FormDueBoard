@@ -94,7 +94,13 @@ def _merge_item(db: Database, message_row_id: int, item, related: list[dict]) ->
             thread_item["title"],
             item.due_date,
         )
-        db.update_due(int(thread_item["id"]), item.due_date, new_fp)
+        db.update_due(
+            int(thread_item["id"]),
+            item.due_date,
+            new_fp,
+            due_date_phrase=item.due_date_phrase,
+            date_assumptions=item.date_assumptions,
+        )
         db.link_message(int(thread_item["id"]), message_row_id)
         return "updated"
     if existing is not None:
@@ -123,7 +129,13 @@ def _apply_thread_note(db, message, message_row_id: int, related: list[dict], tz
             return False
         for row in related:
             new_fp = fingerprint(row.get("kid_name"), row["form_type"], row["title"], decision.due_date)
-            db.update_due(int(row["id"]), decision.due_date, new_fp)
+            db.update_due(
+                int(row["id"]),
+                decision.due_date,
+                new_fp,
+                due_date_phrase=decision.due_date_phrase,
+                date_assumptions=decision.assumptions,
+            )
             db.link_message(int(row["id"]), message_row_id)
         return True
     return False

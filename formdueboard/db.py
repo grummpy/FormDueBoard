@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 import threading
 from datetime import UTC, date, datetime
@@ -45,6 +46,9 @@ CREATE TABLE IF NOT EXISTS items (
     needs_review INTEGER NOT NULL DEFAULT 0,
     review_reason TEXT,
     snippet TEXT,
+    due_date_phrase TEXT,
+    event_date_phrase TEXT,
+    date_assumptions TEXT NOT NULL DEFAULT '[]',
     fingerprint TEXT,
     normalized_subject TEXT,
     primary_message_id INTEGER REFERENCES messages(id),
@@ -76,6 +80,7 @@ class Database:
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA foreign_keys = ON")
         self._conn.executescript(SCHEMA)
+        self._ensure_item_columns()
         self._conn.commit()
 
     def close(self) -> None:
@@ -140,9 +145,10 @@ class Database:
                 INSERT INTO items (
                     kid_name, suggested_kid, title, form_type, form_label, due_date,
                     event_date, fee_amount, status, cancelled, confidence, needs_review,
-                    review_reason, snippet, fingerprint, normalized_subject,
+                    review_reason, snippet, due_date_phrase, event_date_phrase, date_assumptions,
+                    fingerprint, normalized_subject,
                     primary_message_id, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'todo', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'todo', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     item.kid_name,
@@ -158,6 +164,9 @@ class Database:
                     1 if item.needs_review else 0,
                     item.review_reason,
                     item.snippet,
+                    item.due_date_phrase,
+                    item.event_date_phrase,
+                    json.dumps(list(item.date_assumptions)),
                     fingerprint,
                     item.normalized_subject,
                     message_row_id,
@@ -212,14 +221,30 @@ class Database:
         )
         return [dict(row) for row in rows]
 
-    def update_due(self, item_id: int, due_date, fingerprint: str) -> None:
+    def update_due(
+        self,
+        item_id: int,
+        due_date,
+        fingerprint: str,
+        *,
+        due_date_phrase: str | None = None,
+        date_assumptions: tuple[str, ...] = (),
+    ) -> None:
         with self._lock:
             self._conn.execute(
                 """
-                UPDATE items SET due_date = ?, fingerprint = ?, updated_at = ?
+                UPDATE items
+                SET due_date = ?, due_date_phrase = ?, date_assumptions = ?, fingerprint = ?, updated_at = ?
                 WHERE id = ?
                 """,
-                (_iso(due_date), fingerprint, utc_now(), item_id),
+                (
+                    _iso(due_date),
+                    due_date_phrase,
+                    json.dumps(list(date_assumptions)),
+                    fingerprint,
+                    utc_now(),
+                    item_id,
+                ),
             )
             self._conn.commit()
 
@@ -277,6 +302,17 @@ class Database:
             (message_row_id,),
         )
         return [dict(row) for row in rows]
+
+    def _ensure_item_columns(self) -> None:
+        """Upgrade existing local boards without dropping personal checklist data."""
+        known = {row["name"] for row in self._conn.execute("PRAGMA table_info(items)")}
+        for name, declaration in (
+            ("due_date_phrase", "TEXT"),
+            ("event_date_phrase", "TEXT"),
+            ("date_assumptions", "TEXT NOT NULL DEFAULT '[]'"),
+        ):
+            if name not in known:
+                self._conn.execute(f"ALTER TABLE items ADD COLUMN {name} {declaration}")
 
     def _one(self, sql: str, params: tuple):
         with self._lock:

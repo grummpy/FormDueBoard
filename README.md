@@ -26,6 +26,10 @@ Each kid gets a column. A card shows the form, the due date, a snippet of the so
 
 Extraction is rules and patterns, with a confidence score. It does not call a language model. It looks for form words, due dates (including "by Friday" and "tomorrow", counted from the email's own date), event dates kept separate from due dates, and dollar amounts. A message from a configured teacher is filed under that teacher's student unless the text names another kid, a nickname, or the other kid's grade. If the kid is ambiguous, or the note is too thin to trust, it goes to **Needs a look** and is not filed until you choose a kid. Replies and forwards of the same form collapse into one card. A later "extended to …" or "cancelled" note updates that card.
 
+An email with two independently dated, concrete form requests can create two cards. The split is rule-based: each request must name a recognized form and its own due date. When mail only has a generic follow-up sentence or an unclear boundary, it stays as one item instead of being guessed apart.
+
+Each card keeps the matched date phrase and the deterministic assumption used to resolve it. For example, the board shows that `by Friday` was calculated from the email date. Conflicting due dates remain in **Needs a look**, with the matched phrases and assumptions available there instead of silently picking one.
+
 ## Dev setup
 
 ```bash
@@ -88,7 +92,7 @@ Build the Mac app on a Mac and the Windows exe on Windows so the bundle matches 
 - Email dates without a timezone are treated as UTC. This keeps mixed `.eml` and mbox exports sortable; add a timezone to exported mail when its local calendar day matters.
 - "by Friday" means the next time that weekday occurs, including today. "next Friday" means the same thing unless the email was sent on Friday, in which case it means a week later.
 - PDF text is extracted with pypdf. Scanned pages without a text layer are not read (no OCR). DOCX text is extracted; pictures inside a DOCX are not.
-- One clear form per message is filed. A single email that requests two unrelated forms for the same kid may keep only the stronger one.
+- A multi-form email is separated only when each request has a recognized concrete form and its own due date. Generic or intertwined wording remains one reviewable item rather than being guessed apart.
 - Gmail OAuth was not exercised against a live Google account in development.
 - The Mac `.command` launcher and the Windows `.bat` launcher were not run on those systems here. The Linux launcher can be syntax-checked with `bash -n`.
 - PyInstaller packaging was not run in CI.

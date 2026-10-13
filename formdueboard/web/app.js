@@ -83,6 +83,9 @@ function card(item, index) {
   if (item.event_display) {
     meta.append(el("span", null, meta.childNodes.length ? ` · Event ${item.event_display}` : `Event ${item.event_display}`));
   }
+  if (item.due_date_phrase) {
+    meta.append(el("span", null, ` · Parsed from “${item.due_date_phrase}”`));
+  }
   if (item.fee_amount) {
     meta.append(el("span", null, ` · $${item.fee_amount}`));
   }
@@ -96,6 +99,9 @@ function card(item, index) {
     meta.append(el("span", null, meta.childNodes.length ? ` · ${item.source_name}` : item.source_name));
   }
   node.append(meta);
+  if (item.date_assumptions && item.date_assumptions.length) {
+    node.append(el("p", "meta", `Date basis: ${item.date_assumptions.join(" ")}`));
+  }
   if (item.attachments && item.attachments.length) {
     const chips = el("div", "chips");
     item.attachments.forEach((attachment) => chips.append(el("span", "chip", attachment.filename)));
@@ -132,6 +138,10 @@ function reviewCard(item, kids) {
   node.append(el("h3", null, item.title));
   if (item.due_display) node.append(el("div", "due-badge", `Due: ${item.due_display}`));
   node.append(el("p", "reason", item.review_reason || "Needs a look before it is filed."));
+  if (item.due_date_phrase) node.append(el("p", "meta", `Parsed date phrase: “${item.due_date_phrase}”`));
+  if (item.date_assumptions && item.date_assumptions.length) {
+    node.append(el("p", "meta", `Date basis: ${item.date_assumptions.join(" ")}`));
+  }
   if (item.snippet) node.append(el("p", "snippet", item.snippet));
   const actions = el("div", "assign");
   kids.forEach((kid) => {

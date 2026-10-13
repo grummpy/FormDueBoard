@@ -62,3 +62,6 @@ class ExtractedItem:
     due_changed: bool
     normalized_subject: str
     attachment_names: list[str] = field(default_factory=list)
+    due_date_phrase: str | None = None
+    event_date_phrase: str | None = None
+    date_assumptions: tuple[str, ...] = ()
